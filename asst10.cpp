@@ -103,7 +103,7 @@ list<Frame>::iterator g_currentFrameIt;
 vector<shared_ptr<SgRbtNode> > g_frameNodes;
 
 static int g_msBetweenKeyFrames = 2000; // 2 seconds between keyframes
-static int g_animateFramesPerSecond = 60; // frames to render per second during animation playback
+static int g_animateFramesPerSecond = 30; // frames to render per second during animation playback
 static bool g_isPlaying = false;
 
 // Material
@@ -114,7 +114,8 @@ static vector<shared_ptr<Material> > g_blobShellMats; // for blob shells
 static double g_radius = 6;
 static double g_thickness = 4;
 static int g_model = 0;
-static int g_randIterations = 100;
+static double g_blobX = 0.0;
+static double g_blobY = 12.0;
 static bool g_wireframe = false;
 static bool g_sharp = false;
 static int g_debug = 0;
@@ -135,9 +136,9 @@ static void updateBlobGeometry() {
     
   vector<VertexPNX> newVerts;
   const double scale = 0.1;
-  DC::HermiteData<24, 24, 24> voxels(ToggleImplicit(Cvec3(12.0, 12.0, 12.0), g_radius, g_thickness, g_model));
+  DC::HermiteData<24, 24, 24> voxels(ToggleImplicit(Cvec3(g_blobX, g_blobY, 12.0), g_radius, g_thickness, g_model));
   if (g_debug == 0) {
-    voxels.triangulateToVector(newVerts, scale, g_randIterations, g_sharp);
+    voxels.triangulateToVector(newVerts, scale, g_blobX, g_sharp);
   } else if (g_debug == 1) {
     voxels.triangulateToVectorDebug(newVerts, scale, false);
   } else {
@@ -712,18 +713,20 @@ bool interpolateAndDisplay(float t) {
 // Interpret "ms" as milliseconds into the animation
 static void animateTimerCallback(int ms) {
   float t = (float)ms/(float)g_msBetweenKeyFrames;
-  bool endReached = interpolateAndDisplay(t) || !g_isPlaying;
-  if (!endReached)
+  bool endReached = false; //interpolateAndDisplay(t) || !g_isPlaying;
+  if (!endReached) {
+    g_blobY = 12.0 + sin(t * 8.0) * 3.0;
+    updateBlobGeometry();
     glutTimerFunc(1000/g_animateFramesPerSecond,
                   animateTimerCallback,
                   ms + 1000/g_animateFramesPerSecond);
-  else {
-    g_isPlaying = false;
-    auto endIt = g_frames.end();
-    endIt--;
-    endIt--;
-    g_currentFrameIt = endIt;
-    currentKeyframeToScene();
+  } else {
+    //g_isPlaying = false;
+    //auto endIt = g_frames.end();
+    //endIt--;
+    //endIt--;
+    //g_currentFrameIt = endIt;
+    //currentKeyframeToScene();
   }
   glutPostRedisplay();
 }
@@ -761,7 +764,6 @@ static void keyboard(const unsigned char key, const int x, const int y) {
   case '4':
     g_model = 3;
     g_sharp = true;
-      g_randIterations = 350;
     updateBlobGeometry();
     break;
   case '5':
@@ -929,7 +931,7 @@ static void keyboard(const unsigned char key, const int x, const int y) {
   }
       
   case 'y': {
-    if (g_frames.size() >= 4 && !g_isPlaying) {
+    if (g_frames.size() >= 4 && !g_isPlaying || true) {
       cout << "Playing.." << endl;
       g_isPlaying = true;
       animateTimerCallback(0);
@@ -950,29 +952,16 @@ static void keyboard(const unsigned char key, const int x, const int y) {
 static void specialKeyboard(const int key, const int x, const int y) {
   switch (key) {
     case GLUT_KEY_RIGHT:
-      g_radius += 0.5;
-      cout << "Radius = " << g_radius << std::endl;
+      g_blobX += 0.5;
       break;
     case GLUT_KEY_LEFT:
-      g_radius -= 0.5;
-      cout << "Radius = " << g_radius << std::endl;
+      g_blobX -= 0.5;
       break;
     case GLUT_KEY_UP:
-      if (g_randIterations >= 10) {
-        g_randIterations += 10;
-      } else {
-        g_randIterations += 1;
-      }
-      cout << "Random iterations = " << g_randIterations << std::endl;
+      g_radius *= 1.05;
       break;
     case GLUT_KEY_DOWN:
-      if (g_randIterations > 10) {
-        g_randIterations -= 10;
-      } else if (g_randIterations > 1) {
-        g_randIterations -= 1;
-      }
-      
-      cout << "Random iterations = " << g_randIterations << std::endl;
+      g_radius /= 1.05;
       break;
   }
   updateBlobGeometry();
@@ -1083,7 +1072,7 @@ static void initScene() {
   g_robot2Node.reset(new SgRbtNode(RigTForm(Cvec3(2, 1, -8))));
 
   // create a single transform node for both the blob and the blob shells
-  g_blobNode.reset(new SgRbtNode(RigTForm(Cvec3(-1, -1, -1))));
+  g_blobNode.reset(new SgRbtNode(RigTForm(Cvec3(0, 0, 0))));
   
   // add each shell as shape node
   g_blobNode->addChild(shared_ptr<MyShapeNode>(new MyShapeNode(g_blobGeometry, g_redDiffuseMat)));
