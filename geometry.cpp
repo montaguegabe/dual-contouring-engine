@@ -5,7 +5,6 @@
 #include "geometry.h"
 
 using namespace std;
-using namespace tr1;
 
 const VertexFormat VertexPN::FORMAT = VertexFormat(sizeof(VertexPN))
                                       .put("aPosition", 3, GL_FLOAT, GL_FALSE, offsetof(VertexPN, p))

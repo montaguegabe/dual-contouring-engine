@@ -8,11 +8,6 @@
 #include <string>
 #include <stdexcept>
 #include <memory>
-
-#if __GNUG__
-#   include <tr1/memory>
-#endif
-
 #include "cvec.h"
 #include "glsupport.h"
 #include "geometrymaker.h"
@@ -221,20 +216,20 @@ public:
   // Declares and maps a vertex attribute named 'targetAttribName' to the
   // vertex attribute named 'sourceAttribName' of the 'source' FormattedVbo
   BufferObjectGeometry& wire(const std::string& targetAttribName,
-                             std::tr1::shared_ptr<FormattedVbo> source,
+                             std::shared_ptr<FormattedVbo> source,
                              const std::string& sourceAttribName);
 
   // Declares and maps a vertex attribute to the vertex attribute
   // named 'sourceAttribName' of the 'source' FormattedVbo. The declared
   // vertex attribute also holds the name 'sourceAttribName'
-  BufferObjectGeometry& wire(std::tr1::shared_ptr<FormattedVbo> source, const std::string& sourceAttribName);
+  BufferObjectGeometry& wire(std::shared_ptr<FormattedVbo> source, const std::string& sourceAttribName);
 
   // Declares and maps all vertex attributes contained in the 'source' FormattedVbo.
   // Same names are used for each attribute.
-  BufferObjectGeometry& wire(std::tr1::shared_ptr<FormattedVbo> source);
+  BufferObjectGeometry& wire(std::shared_ptr<FormattedVbo> source);
 
   // Set the index buffer to be used. Pass in a null shared_ptr to mean non-indexed. Default is non-indexed
-  BufferObjectGeometry& indexedBy(std::tr1::shared_ptr<FormattedIbo> ib);
+  BufferObjectGeometry& indexedBy(std::shared_ptr<FormattedIbo> ib);
 
   // Same as indexBy(null shared_ptr)
   BufferObjectGeometry& noIndex();
@@ -258,12 +253,12 @@ public:
   virtual void draw(int attribIndices[]);
 
 private:
-  typedef std::map<std::string, std::pair<std::tr1::shared_ptr<FormattedVbo>, std::string> > Wiring;
+  typedef std::map<std::string, std::pair<std::shared_ptr<FormattedVbo>, std::string> > Wiring;
 
   GLenum primitiveType_;
   bool wiringChanged_;
   Wiring wiring_;
-  std::tr1::shared_ptr<FormattedIbo> ib_;
+  std::shared_ptr<FormattedIbo> ib_;
 
   // Internal struct for optimized vb binding order
   struct PerVbWiring {
@@ -410,7 +405,7 @@ struct VertexPNTBX : public VertexPNX {
 // Simple unindex geometry implementation based on BufferObjectGeometry
 template<typename Vertex>
 class SimpleUnindexedGeometry : public BufferObjectGeometry {
-  std::tr1::shared_ptr<FormattedVbo> vbo;
+  std::shared_ptr<FormattedVbo> vbo;
 public:
   SimpleUnindexedGeometry() : vbo(new FormattedVbo(Vertex::FORMAT)) {
     wire(vbo);
@@ -433,8 +428,8 @@ public:
 // Simple Index geometry implementation based on BufferObjectGeometry
 template<typename Vertex, typename Index>
 class SimpleIndexedGeometry : public BufferObjectGeometry {
-  std::tr1::shared_ptr<FormattedVbo> vbo;
-  std::tr1::shared_ptr<FormattedIbo> ibo;
+  std::shared_ptr<FormattedVbo> vbo;
+  std::shared_ptr<FormattedIbo> ibo;
 public:
   SimpleIndexedGeometry()
     : vbo(new FormattedVbo(Vertex::FORMAT)), ibo(new FormattedIbo(size2IboFmt(sizeof(Index)))) {

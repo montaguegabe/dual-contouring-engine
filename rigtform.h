@@ -3,8 +3,7 @@
 
 #include <iostream>
 #include <cassert>
-#include <tr1/array>
-
+#include <array>
 #include "matrix4.h"
 #include "quat.h"
 
@@ -32,12 +31,12 @@ public:
     r_ = r;
   }
 
-  explicit RigTForm(const std::tr1::array<double, 7> posQuat) {
+  explicit RigTForm(const std::array<double, 7> posQuat) {
     t_ = {posQuat[0], posQuat[1], posQuat[2]};
     r_ = Quat(posQuat[3], posQuat[4], posQuat[5], posQuat[6]);
   }
   
-  std::tr1::array<double, 7> getPosQuat() const {
+  std::array<double, 7> getPosQuat() const {
     return {t_[0], t_[1], t_[2], r_.q_[0], r_.q_[1], r_.q_[2], r_.q_[3]};
   }
   

@@ -34,6 +34,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		9532B99F1FE86E7F00E7AF00 /* glsupport.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = glsupport.h; sourceTree = "<group>"; };
 		9534A38F1FB939B300BAD6B6 /* uniforms.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = uniforms.h; sourceTree = "<group>"; };
 		9534A3901FB941F600BAD6B6 /* geometry.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = geometry.h; sourceTree = "<group>"; };
 		9534A3911FB9420200BAD6B6 /* geometry.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = geometry.cpp; sourceTree = "<group>"; };
@@ -62,15 +63,14 @@
 		95986C7C1FA654CB00E8A8B2 /* picker.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = picker.cpp; sourceTree = "<group>"; };
 		95986C7D1FA654CB00E8A8B2 /* asstcommon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = asstcommon.h; sourceTree = "<group>"; };
 		95986C811FA6554000E8A8B2 /* matrix4.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = matrix4.h; sourceTree = "<group>"; };
-		95986C821FA6556500E8A8B2 /* glsupport.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = glsupport.h; path = ../asst3/glsupport.h; sourceTree = "<group>"; };
-		95986C831FA6557A00E8A8B2 /* ppm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ppm.h; path = ../asst3/ppm.h; sourceTree = "<group>"; };
+		95986C831FA6557A00E8A8B2 /* ppm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ppm.h; sourceTree = "<group>"; };
 		95986C841FA6557A00E8A8B2 /* ppm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ppm.cpp; sourceTree = "<group>"; };
 		95986C871FA655A700E8A8B2 /* glew32.lib */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = glew32.lib; path = ../asst3/lib/glew32.lib; sourceTree = "<group>"; };
 		95986C891FA655A900E8A8B2 /* glew32s.lib */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = glew32s.lib; path = ../asst3/lib/glew32s.lib; sourceTree = "<group>"; };
 		95986C8B1FA655AB00E8A8B2 /* glut32.lib */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = glut32.lib; path = ../asst3/lib/glut32.lib; sourceTree = "<group>"; };
 		95986C8D1FA655C800E8A8B2 /* glsupport.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = glsupport.cpp; sourceTree = SOURCE_ROOT; };
 		95E820A01FE57D7200D29E62 /* hermitedata.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = hermitedata.hpp; sourceTree = "<group>"; };
-		A604772D1B987E5B005CA601 /* cs175-final */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "cs175-final"; sourceTree = BUILT_PRODUCTS_DIR; };
+		A604772D1B987E5B005CA601 /* Engine */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Engine; sourceTree = BUILT_PRODUCTS_DIR; };
 		A67837C71B987ED0000291E4 /* shaders */ = {isa = PBXFileReference; lastKnownFileType = folder; path = shaders; sourceTree = "<group>"; };
 		A67837CB1B987EE9000291E4 /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = System/Library/Frameworks/GLUT.framework; sourceTree = SDKROOT; };
 		A67837CD1B987EEE000291E4 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
@@ -122,7 +122,7 @@
 				9534A39A1FB9471400BAD6B6 /* material.h */,
 				9534A39B1FB9471B00BAD6B6 /* material.cpp */,
 				95986C721FA654CA00E8A8B2 /* quat.h */,
-				95986C821FA6556500E8A8B2 /* glsupport.h */,
+				9532B99F1FE86E7F00E7AF00 /* glsupport.h */,
 				95986C811FA6554000E8A8B2 /* matrix4.h */,
 				95900F1D1FC28F6600B44E69 /* mesh.h */,
 				95900F1C1FC28F6600B44E69 /* mesh.interface */,
@@ -146,7 +146,7 @@
 		A604772E1B987E5B005CA601 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				A604772D1B987E5B005CA601 /* cs175-final */,
+				A604772D1B987E5B005CA601 /* Engine */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -154,9 +154,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		A604772C1B987E5B005CA601 /* cs175-final */ = {
+		A604772C1B987E5B005CA601 /* Engine */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = A60477341B987E5B005CA601 /* Build configuration list for PBXNativeTarget "cs175-final" */;
+			buildConfigurationList = A60477341B987E5B005CA601 /* Build configuration list for PBXNativeTarget "Engine" */;
 			buildPhases = (
 				A60477291B987E5B005CA601 /* Sources */,
 				A604772A1B987E5B005CA601 /* Frameworks */,
@@ -166,9 +166,9 @@
 			);
 			dependencies = (
 			);
-			name = "cs175-final";
+			name = Engine;
 			productName = "cs175-asst1";
-			productReference = A604772D1B987E5B005CA601 /* cs175-final */;
+			productReference = A604772D1B987E5B005CA601 /* Engine */;
 			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
@@ -177,7 +177,7 @@
 		A60477251B987E5A005CA601 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0640;
+				LastUpgradeCheck = 0920;
 				ORGANIZATIONNAME = cs175;
 				TargetAttributes = {
 					A604772C1B987E5B005CA601 = {
@@ -185,7 +185,7 @@
 					};
 				};
 			};
-			buildConfigurationList = A60477281B987E5A005CA601 /* Build configuration list for PBXProject "cs175-final" */;
+			buildConfigurationList = A60477281B987E5A005CA601 /* Build configuration list for PBXProject "Engine" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -197,7 +197,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				A604772C1B987E5B005CA601 /* cs175-final */,
+				A604772C1B987E5B005CA601 /* Engine */,
 			);
 		};
 /* End PBXProject section */
@@ -228,21 +228,30 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
-				CLANG_CXX_LIBRARY = "libstdc++";
+				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -271,16 +280,24 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
-				CLANG_CXX_LIBRARY = "libstdc++";
+				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
@@ -305,8 +322,8 @@
 		A60477351B987E5B005CA601 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
-				CLANG_CXX_LIBRARY = "libstdc++";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
+				CLANG_CXX_LIBRARY = "libc++";
 				CONFIGURATION_BUILD_DIR = .;
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
@@ -317,14 +334,15 @@
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SYMROOT = .;
+				WARNING_LDFLAGS = "";
 			};
 			name = Debug;
 		};
 		A60477361B987E5B005CA601 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
-				CLANG_CXX_LIBRARY = "libstdc++";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
+				CLANG_CXX_LIBRARY = "libc++";
 				CONFIGURATION_BUILD_DIR = .;
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_OPTIMIZATION_LEVEL = fast;
@@ -336,13 +354,14 @@
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SYMROOT = .;
+				WARNING_LDFLAGS = "";
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		A60477281B987E5A005CA601 /* Build configuration list for PBXProject "cs175-final" */ = {
+		A60477281B987E5A005CA601 /* Build configuration list for PBXProject "Engine" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A60477321B987E5B005CA601 /* Debug */,
@@ -351,7 +370,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		A60477341B987E5B005CA601 /* Build configuration list for PBXNativeTarget "cs175-final" */ = {
+		A60477341B987E5B005CA601 /* Build configuration list for PBXNativeTarget "Engine" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A60477351B987E5B005CA601 /* Debug */,

@@ -6,10 +6,6 @@
 #include <map>
 #include <memory>
 #include <stdexcept>
-#if __GNUG__
-#   include <tr1/memory>
-#endif
-
 
 #include "cvec.h"
 #include "matrix4.h"
@@ -38,7 +34,7 @@ public:
   static void removeInlineSource(const std::string& filename);
 
 protected:
-  std::tr1::shared_ptr<GlProgramDesc> programDesc_;
+  std::shared_ptr<GlProgramDesc> programDesc_;
 
   Uniforms uniforms_;
 

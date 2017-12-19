@@ -9,7 +9,6 @@
 #include "material.h"
 
 using namespace std;
-using namespace tr1;
 
 struct GlProgramDesc {
   struct UniformDesc {
@@ -65,7 +64,7 @@ struct GlProgramDesc {
     }
 
     if (!g_Gl2Compatible)
-      glBindFragDataLocation(program, 0, "fragColor");
+      glBindFragDataLocationEXT(program, 0, "fragColor");
 
     checkGlErrors();
   }
@@ -178,9 +177,6 @@ static const char * getGlConstantName(GLenum c) {
     { GL_INT_VEC2, "GL_INT_VEC2" },
     { GL_INT_VEC3, "GL_INT_VEC3" },
     { GL_INT_VEC4, "GL_INT_VEC4" },
-    { GL_UNSIGNED_INT_VEC2, "GL_UNSIGNED_INT_VEC2" },
-    { GL_UNSIGNED_INT_VEC3, "GL_UNSIGNED_INT_VEC3" },
-    { GL_UNSIGNED_INT_VEC4, "GL_UNSIGNED_INT_VEC4" },
     { GL_SAMPLER_1D, "GL_SAMPLER_1D" },
     { GL_SAMPLER_2D, "GL_SAMPLER_2D" },
     { GL_SAMPLER_CUBE, "GL_SAMPLER_CUBE" },

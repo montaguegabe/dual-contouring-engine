@@ -15,10 +15,7 @@
 #include <fstream>
 #include <iterator>
 #include <sstream>
-#if __GNUG__
-#   include <tr1/memory>
-#endif
-
+#define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED 1
 #ifdef __MAC__
 #   include <OpenGL/gl3.h>
 #   include <GLUT/glut.h>
@@ -45,7 +42,6 @@
 #include "hermitedata.hpp"
 
 using namespace std;
-using namespace tr1;
 
 #pragma mark - Globals
 // G L O B A L S ///////////////////////////////////////////////////
@@ -56,7 +52,6 @@ static float g_frustFovY = g_frustMinFov; // FOV in y direction (updated by upda
 
 static const float g_frustNear = -0.1;    // near plane
 static const float g_frustFar = -50.0;    // far plane
-static const float g_groundY = -2.0;      // y coordinate of the ground
 static const float g_groundSize = 10.0;   // half the ground length
 
 static int g_windowWidth = 800;
@@ -116,8 +111,8 @@ static bool g_isPlaying = false;
 static vector<shared_ptr<Material> > g_blobShellMats; // for blob shells
 
 // New Geometry
-static double g_radius = 5;
-static double g_thickness = 4.1;
+static double g_radius = 6;
+static double g_thickness = 4;
 static int g_model = 0;
 static int g_randIterations = 100;
 static bool g_wireframe = false;
@@ -389,11 +384,11 @@ static void motion(const int x, const int y) {
       offY = g_mouseClickY - g_arcBallScreenCoords[1];
       offZ2 = r * r - offX * offX - offY * offY;
       offZ = offZ2 >= 0 ? sqrt(offZ2) : 0;
-      if (offZ2 < 0 && false) {
+      /* CLICK AWAY FUNCTIONALITY if (offZ2 < 0) {
         g_currentPickedRbtNode = shared_ptr<SgRbtNode>();
         g_pickMode = false;
         return;
-      }
+      }*/
       const Cvec3 arcPositionOrig = {offX, offY, offZ};
       const Cvec3 arcPositionOrigNorm = normalize(arcPositionOrig);
       
@@ -557,7 +552,7 @@ static void loadAnimFile(string fileName) {
   vector<RigTForm> readingFrame;
   
   while(getline(inFile, line)) {
-    tr1::array<double, 7> transQuat;
+    array<double, 7> transQuat;
     std::stringstream ss(line);
     double val;
     int i = 0;
@@ -955,11 +950,11 @@ static void keyboard(const unsigned char key, const int x, const int y) {
 static void specialKeyboard(const int key, const int x, const int y) {
   switch (key) {
     case GLUT_KEY_RIGHT:
-      g_radius *= 1.05;
+      g_radius += 0.5;
       cout << "Radius = " << g_radius << std::endl;
       break;
     case GLUT_KEY_LEFT:
-      g_radius /= 1.05;
+      g_radius -= 0.5;
       cout << "Radius = " << g_radius << std::endl;
       break;
     case GLUT_KEY_UP:
@@ -1059,79 +1054,6 @@ static void initGeometry() {
   initBlobbyMeshes();
 }
 
-static void constructRobot(shared_ptr<SgTransformNode> base, shared_ptr<Material> material) {
-  
-  const float ARM_LEN = 0.7,
-  ARM_THICK = 0.25,
-  LEG_LEN = 1.1,
-  LEG_THICK_UPPER = 0.3,
-  LEG_THICK_LOWER = 0.25,
-  TORSO_LEN = 1.5,
-  TORSO_THICK = 0.25,
-  TORSO_WIDTH = 1,
-  HEAD_RADIUS = 0.4,
-  HEAD_HEIGHT = 0.55;
-  const int NUM_JOINTS = 10,
-  NUM_SHAPES = 10;
-  
-  struct JointDesc {
-    int parent;
-    float x, y, z;
-  };
-  
-  JointDesc jointDesc[NUM_JOINTS] = {
-    {-1}, // torso
-    {0,  TORSO_WIDTH/2, TORSO_LEN/2, 0}, // upper right arm
-    {1,  ARM_LEN, 0, 0}, // lower right arm
-    {0,  -TORSO_WIDTH/2, TORSO_LEN/2, 0}, // upper left arm
-    {3,  -ARM_LEN, 0, 0}, // lower left arm
-    {0,  TORSO_WIDTH/2, -TORSO_LEN/2, 0}, // right upper leg
-    {5,  0, -LEG_LEN, 0}, // right lower leg
-    {0,  -TORSO_WIDTH/2, -TORSO_LEN/2, 0}, // left upper leg
-    {7,  0, -LEG_LEN, 0}, // left lower leg
-    {0,  0, TORSO_LEN/2, 0}  // head
-  };
-  
-  struct ShapeDesc {
-    int parentJointId;
-    float x, y, z, sx, sy, sz;
-    shared_ptr<Geometry> geometry;
-  };
-  
-  ShapeDesc shapeDesc[NUM_SHAPES] = {
-    {0, 0,         0, 0, TORSO_WIDTH, TORSO_LEN, TORSO_THICK, g_cube}, // torso
-    {1, ARM_LEN/2, 0, 0, ARM_LEN, ARM_THICK, ARM_THICK, g_cube}, // upper right arm
-    {2, ARM_LEN/2, 0, 0, ARM_LEN, ARM_THICK, ARM_THICK, g_cube}, // lower right arm
-    {3, -ARM_LEN/2, 0, 0, ARM_LEN, ARM_THICK, ARM_THICK, g_cube}, // upper left arm
-    {4, -ARM_LEN/2, 0, 0, ARM_LEN, ARM_THICK, ARM_THICK, g_cube}, // lower left arm
-    {5, 0, -LEG_LEN/2, 0, LEG_THICK_UPPER, LEG_LEN, LEG_THICK_UPPER, g_cube},
-    {6, 0, -LEG_LEN/2, 0, LEG_THICK_LOWER, LEG_LEN, LEG_THICK_LOWER, g_cube},
-    {7, 0, -LEG_LEN/2, 0, LEG_THICK_UPPER, LEG_LEN, LEG_THICK_UPPER, g_cube},
-    {8, 0, -LEG_LEN/2, 0, LEG_THICK_LOWER, LEG_LEN, LEG_THICK_LOWER, g_cube},
-    {9, 0, HEAD_HEIGHT, 0, HEAD_RADIUS, HEAD_HEIGHT, HEAD_RADIUS, g_sphere},
-  };
-  
-  shared_ptr<SgTransformNode> jointNodes[NUM_JOINTS];
-  
-  for (int i = 0; i < NUM_JOINTS; ++i) {
-    if (jointDesc[i].parent == -1)
-      jointNodes[i] = base;
-    else {
-      jointNodes[i].reset(new SgRbtNode(RigTForm(Cvec3(jointDesc[i].x, jointDesc[i].y, jointDesc[i].z))));
-      jointNodes[jointDesc[i].parent]->addChild(jointNodes[i]);
-    }
-  }
-  for (int i = 0; i < NUM_SHAPES; ++i) {
-    shared_ptr<MyShapeNode> shape(
-                                  new MyShapeNode(shapeDesc[i].geometry,
-                                                  material,
-                                                  Cvec3(shapeDesc[i].x, shapeDesc[i].y, shapeDesc[i].z),
-                                                  Cvec3(0, 0, 0),
-                                                  Cvec3(shapeDesc[i].sx, shapeDesc[i].sy, shapeDesc[i].sz)));
-    jointNodes[shapeDesc[i].parentJointId]->addChild(shape);
-  }
-}
-
 static void initScene() {
   g_world.reset(new SgRootNode());
   
@@ -1159,10 +1081,7 @@ static void initScene() {
   
   g_robot1Node.reset(new SgRbtNode(RigTForm(Cvec3(-2, 1, -8))));
   g_robot2Node.reset(new SgRbtNode(RigTForm(Cvec3(2, 1, -8))));
-  
-  //constructRobot(g_robot1Node, g_redDiffuseMat); // a Red robot
-  //constructRobot(g_robot2Node, g_blueDiffuseMat); // a Blue robot
-  
+
   // create a single transform node for both the blob and the blob shells
   g_blobNode.reset(new SgRbtNode(RigTForm(Cvec3(-1, -1, -1))));
   

@@ -14,6 +14,7 @@ static const double CS175_EPS3 = CS175_EPS * CS175_EPS * CS175_EPS;
 
 template <typename T, int n>
 class Cvec {
+protected:
   T d_[n];
 
 public:
@@ -27,6 +28,14 @@ public:
     for (int i = 0; i < n; ++i) {
       d_[i] = t;
     }
+  }
+  
+  static Cvec<T, n> direction(const int direction) {
+    Cvec<T, n> result;
+    for (int i = 0; i < n; ++i) {
+      result.d_[i] = i == direction ? 1 : 0;
+    }
+    return result;
   }
 
   Cvec(const T& t0, const T& t1) {

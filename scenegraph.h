@@ -4,10 +4,6 @@
 #include <vector>
 #include <memory>
 #include <stdexcept>
-#if __GNUG__
-#   include <tr1/memory>
-#endif
-
 #include "matrix4.h"
 #include "rigtform.h"
 #include "glsupport.h" // for Noncopyable
@@ -17,7 +13,7 @@
 
 class SgNodeVisitor;
 
-class SgNode : public std::tr1::enable_shared_from_this<SgNode>, Noncopyable {
+class SgNode : public std::enable_shared_from_this<SgNode>, Noncopyable {
 public:
   virtual bool accept(SgNodeVisitor& vistor) = 0;
   virtual ~SgNode() {}
@@ -46,19 +42,19 @@ public:
   virtual bool accept(SgNodeVisitor& visitor);
   virtual RigTForm getRbt() = 0;
 
-  void addChild(std::tr1::shared_ptr<SgNode> child);
-  void removeChild(std::tr1::shared_ptr<SgNode> child);
+  void addChild(std::shared_ptr<SgNode> child);
+  void removeChild(std::shared_ptr<SgNode> child);
 
   int getNumChildren() const {
     return children_.size();
   }
 
-  std::tr1::shared_ptr<SgNode> getChild(int i) {
+  std::shared_ptr<SgNode> getChild(int i) {
     return children_[i];
   }
 
 private:
-  std::vector<std::tr1::shared_ptr<SgNode> > children_;
+  std::vector<std::shared_ptr<SgNode> > children_;
 };
 
 //
@@ -88,8 +84,8 @@ public:
 
 
 RigTForm getPathAccumRbt(
-  std::tr1::shared_ptr<SgTransformNode> source,
-  std::tr1::shared_ptr<SgTransformNode> destination,
+  std::shared_ptr<SgTransformNode> source,
+  std::shared_ptr<SgTransformNode> destination,
   int offsetFromDestination = 0);
 
 
@@ -127,12 +123,12 @@ private:
 
 class SgGeometryShapeNode : public SgShapeNode {
 public:
-  std::tr1::shared_ptr<Geometry> geometry;
-  std::tr1::shared_ptr<Material> material;
+  std::shared_ptr<Geometry> geometry;
+  std::shared_ptr<Material> material;
   Matrix4 affineMatrix;
 
-  SgGeometryShapeNode(std::tr1::shared_ptr<Geometry> _geometry,
-                      std::tr1::shared_ptr<Material> _material,
+  SgGeometryShapeNode(std::shared_ptr<Geometry> _geometry,
+                      std::shared_ptr<Material> _material,
                       const Cvec3& translation = Cvec3(0, 0, 0),
                       const Cvec3& eulerAngles = Cvec3(0, 0, 0),
                       const Cvec3& scales = Cvec3(1, 1, 1))

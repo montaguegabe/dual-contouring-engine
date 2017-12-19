@@ -4,6 +4,7 @@
 #include <iostream>
 #include <stdexcept>
 
+#define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED 1
 #ifdef __MAC__
 #   include <OpenGL/gl3.h>
 #   include <GLUT/glut.h>

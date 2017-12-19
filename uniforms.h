@@ -6,10 +6,6 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
-#if __GNUG__
-#   include <tr1/memory>
-#endif
-
 #include "cvec.h"
 #include "matrix4.h"
 #include "glsupport.h"
@@ -120,7 +116,7 @@ public:
     return *this;
   }
 
-  Uniforms& put(const std::string& name, const std::tr1::shared_ptr<Texture>& value) {
+  Uniforms& put(const std::string& name, const std::shared_ptr<Texture>& value) {
     valueMap[name].reset(new TexturesValue(&value, 1));
     return *this;
   }
@@ -162,7 +158,7 @@ public:
     return *this;
   }
 
-  Uniforms& put(const std::string& name, const std::tr1::shared_ptr<Texture> *values, int count) {
+  Uniforms& put(const std::string& name, const std::shared_ptr<Texture> *values, int count) {
     valueMap[name].reset(new TexturesValue(values, count));
     return *this;
   }
@@ -252,7 +248,7 @@ public:
     // `count' specifies how many actural uniforms are specified by the shader, and
     // should be used as input parameter to glUniform*
     virtual void apply(GLint location, GLsizei count, const GLint *boundTexUnits) const = 0;
-    virtual const std::tr1::shared_ptr<Texture> * getTextures() const { return NULL; };
+    virtual const std::shared_ptr<Texture> * getTextures() const { return NULL; };
 
 protected:
     Value(GLenum aType, GLint aSize) : type(aType), size(aSize) {}
@@ -316,9 +312,9 @@ public:
   };
 
   class TexturesValue : public Value {
-    std::vector<std::tr1::shared_ptr<Texture> > texs_;
+    std::vector<std::shared_ptr<Texture> > texs_;
 public:
-    TexturesValue(const std::tr1::shared_ptr<Texture> *tex, int size)
+    TexturesValue(const std::shared_ptr<Texture> *tex, int size)
       : Value(tex[0]->getSamplerType(), size), texs_(tex, tex + size) {
       assert(size > 0);
       for (int i = 0; i < size; ++i) {
@@ -335,7 +331,7 @@ public:
       _helper::genericGlUniformv(location, count, boundTexUnits);
     }
 
-    virtual const std::tr1::shared_ptr<Texture> *getTextures() const {
+    virtual const std::shared_ptr<Texture> *getTextures() const {
       return &texs_[0];
     }
   };

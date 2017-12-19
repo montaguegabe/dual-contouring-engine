@@ -3,7 +3,6 @@
 #include "scenegraph.h"
 
 using namespace std;
-using namespace std::tr1;
 
 bool SgTransformNode::accept(SgNodeVisitor& visitor) {
   if (!visitor.visit(*this))

@@ -5,10 +5,6 @@
 #include <map>
 #include <memory>
 #include <stdexcept>
-#if __GNUG__
-#   include <tr1/memory>
-#endif
-
 #include "cvec.h"
 #include "scenegraph.h"
 #include "asstcommon.h"
@@ -16,9 +12,9 @@
 #include "drawer.h"
 
 class Picker : public SgNodeVisitor {
-  std::vector<std::tr1::shared_ptr<SgNode> > nodeStack_;
+  std::vector<std::shared_ptr<SgNode> > nodeStack_;
 
-  typedef std::map<int, std::tr1::shared_ptr<SgRbtNode> > IdToRbtNodeMap;
+  typedef std::map<int, std::shared_ptr<SgRbtNode> > IdToRbtNodeMap;
   IdToRbtNodeMap idToRbtNode_;
 
   int idCounter_;
@@ -26,8 +22,8 @@ class Picker : public SgNodeVisitor {
 
   Drawer drawer_;
 
-  void addToMap(int id, std::tr1::shared_ptr<SgRbtNode> node);
-  std::tr1::shared_ptr<SgRbtNode> find(int id);
+  void addToMap(int id, std::shared_ptr<SgRbtNode> node);
+  std::shared_ptr<SgRbtNode> find(int id);
 
   Cvec3 idToColor(int id);
   int colorToId(const PackedPixel& p);
@@ -40,7 +36,7 @@ public:
   virtual bool visit(SgShapeNode& node);
   virtual bool postVisit(SgShapeNode& node);
 
-  std::tr1::shared_ptr<SgRbtNode> getRbtNodeAtXY(int x, int y);
+  std::shared_ptr<SgRbtNode> getRbtNodeAtXY(int x, int y);
 };
 
 

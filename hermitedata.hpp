@@ -15,16 +15,9 @@
 #include <set>
 #include "implicit.hpp"
 #include <memory>
-#if __GNUG__
-#   include <tr1/memory>
-#endif
 #include <limits>
 
-
-
-using namespace std::tr1;
-
-#define EDGE_DIVISIONS 15
+#define BINARY_SEARCH_ITERS 80
 
 namespace DC {
   
@@ -47,31 +40,110 @@ namespace DC {
     Cvec3f optNormal;
   };
   
-  static void flattenNormals(Cvec3f & n1, Cvec3f & n2, Cvec3f & n3, Cvec3f & n4, const Cvec3f p1, const Cvec3f p2, const Cvec3f p3, const Cvec3f p4) {
-    Cvec3f nAvg = normalize(n1 + n2 + n3 + n4);
-    Cvec3f fN1 = normalize(cross(p1 - p3, p2 - p3));
+  // Returns relative point of intersection with contour. Binary search
+  static inline double edgeContourIntersectionRel(const int x, const int y, const int z, const int direction, const bool isIn /* whether x, y, z is inside */, const ModelType & model) {
+    
+    const int iterations = BINARY_SEARCH_ITERS;
+    
+    double upperBound = 1.0;
+    double lowerBound = 0.0;
+    
+    for (int trial = 0; trial < iterations; trial++) {
+      const double middle = (lowerBound + upperBound) / 2.0;
+      const Cvec3 checkPoint = Cvec3(x, y, z) + Cvec3::direction(direction) * middle;
+      bool middleIsIn = model.getValue(checkPoint) < 0.0;
+      if (middleIsIn != isIn) {
+        upperBound = middle;
+      } else {
+        lowerBound = middle;
+      }
+    }
+    
+    return (upperBound + lowerBound) / 2.0;
+  }
+  
+  static void pushQuad(std::vector<VertexPNX>& target, const Cvec3f p1, const Cvec3f p2, const Cvec3f p3, const Cvec3f p4, Cvec3f n1, Cvec3f n2, Cvec3f n3, Cvec3f n4, const double scale, const bool flat) {
+    
+    double diag1Sqr = norm2(p2 - p4);
+    double diag2Sqr = norm2(p1 - p3);
+    
+    VertexPNX v1(p1 * scale, n1, Cvec2f(1, 1));
+    VertexPNX v2(p2 * scale, n2, Cvec2f(1, 0));
+    VertexPNX v3(p3 * scale, n3, Cvec2f(0, 0));
+    VertexPNX v4(p4 * scale, n4, Cvec2f(0, 1));
+    
+    VertexPNX *t1v1, *t1v2, *t1v3, *t2v1, *t2v2, *t2v3;
+    const Cvec3f *t1p1, *t1p2, *t1p3, *t2p1, *t2p2, *t2p3;
+    if (diag1Sqr > diag2Sqr) {
+      t1v1 = &v3;
+      t1p1 = &p3;
+      t1v2 = &v2;
+      t1p2 = &p2;
+      t1v3 = &v1;
+      t1p3 = &p1;
+      
+      t2v1 = &v3;
+      t2p1 = &p3;
+      t2v2 = &v1;
+      t2p2 = &p1;
+      t2v3 = &v4;
+      t2p3 = &p4;
+      
+    } else {
+      // 3 -> 4 -> 1 -> 2 ->
+      t1v1 = &v4;
+      t1p1 = &p4;
+      t1v2 = &v3;
+      t1p2 = &p3;
+      t1v3 = &v2;
+      t1p3 = &p2;
+      
+      t2v1 = &v4;
+      t2p1 = &p4;
+      t2v2 = &v2;
+      t2p2 = &p2;
+      t2v3 = &v1;
+      t2p3 = &p1;
+    }
+    
+    const Cvec3f nAvg = n1 + n2 + n3 + n4;
+    Cvec3f fN1 = normalize(cross(*t1p3 - *t1p1, *t1p2 - *t1p1));
     if (dot(fN1, nAvg) < 0.0f) {
       fN1 = fN1 * -1.0f;
     }
-    Cvec3f fN2 = normalize(cross(p4 - p3, p1 - p3));
+    Cvec3f fN2 = normalize(cross(*t2p3 - *t2p1, *t2p2 - *t2p1));
     if (dot(fN2, nAvg) < 0.0f) {
       fN2 = fN2 * -1.0f;
     }
     Cvec3f fNAvg = normalize(fN1 + fN2);
     
-    const float thresh = 5;
-    if (dot(n1, fN1) < thresh) {
-      n1 = fNAvg;
+    bool hardEdges = flat;
+    const float thresh = 0.1;
+    if (dot(t1v1->n, fNAvg) < thresh || hardEdges) {
+      t1v1->n = fN1;
     }
-    if (dot(n2, fN1) < thresh) {
-      n2 = fN1;
+    if (dot(t1v2->n, fNAvg) < thresh || hardEdges) {
+      t1v2->n = fN1;
     }
-    if (dot(n3, fN1) < thresh) {
-      n3 = fNAvg;
+    if (dot(t1v3->n, fNAvg) < thresh || hardEdges) {
+      t1v3->n = fN1;
     }
-    if (dot(n4, fN1) < thresh) {
-      n4 = fN2;
+    target.push_back(*t1v1);
+    target.push_back(*t1v2);
+    target.push_back(*t1v3);
+    
+    if (dot(t2v1->n, fNAvg) < thresh || hardEdges) {
+      t2v1->n = fN2;
     }
+    if (dot(t2v2->n, fNAvg) < thresh || hardEdges) {
+      t2v2->n = fN2;
+    }
+    if (dot(t2v3->n, fNAvg) < thresh || hardEdges) {
+      t2v3->n = fN2;
+    }
+    target.push_back(*t2v1);
+    target.push_back(*t2v2);
+    target.push_back(*t2v3);
   }
   
   template <int xSize, int ySize, int zSize>
@@ -88,57 +160,29 @@ namespace DC {
             const Cvec3 pos(x, y, z);
             bool isIn = m_model.getValue(pos) < 0.0;
             
-            
-            // TODO: Replace stupid search with Newton's method or binary search
-            const int edgeDivisions = EDGE_DIVISIONS;
-            const double iterSize = 1.0 / edgeDivisions;
-            
             // Determine x extent
             if ((m_model.getValue(Cvec3(x + 1, y, z)) < 0.0) != isIn) {
-              double checkValue = 0.0;
-              for (int i = 0; i < edgeDivisions; i++) {
-                checkValue += iterSize;
-                Cvec3 checkPoint = Cvec3(x + checkValue, y, z);
-                if ((m_model.getValue(checkPoint) < 0.0) != isIn) {
-                  Plane & targetEdge = m_edges[x][y][z].x;
-                  targetEdge.dist = checkValue - iterSize / 2.0;
-                  checkPoint[0] = targetEdge.dist + x;
-                  targetEdge.normal = m_model.getNorm(checkPoint);
-                  break;
-                }
-              }
+              
+              const double distance = edgeContourIntersectionRel(x, y, z, 0, isIn, m_model);
+              Plane & targetEdge = m_edges[x][y][z].x;
+              targetEdge.dist = distance;
+              targetEdge.normal = m_model.getNorm(Cvec3(x + distance, y, z));
             }
             
             // Determine y extent
             if ((m_model.getValue(Cvec3(x, y + 1, z)) < 0.0) != isIn) {
-              double checkValue = 0.0;
-              for (int i = 0; i < edgeDivisions; i++) {
-                checkValue += iterSize;
-                Cvec3 checkPoint = Cvec3(x, y + checkValue, z);
-                if ((m_model.getValue(checkPoint) < 0.0) != isIn) {
-                  Plane & targetEdge = m_edges[x][y][z].y;
-                  targetEdge.dist = checkValue - iterSize / 2.0;
-                  checkPoint[1] = targetEdge.dist + y;
-                  targetEdge.normal = m_model.getNorm(checkPoint);
-                  break;
-                }
-              }
+              const double distance = edgeContourIntersectionRel(x, y, z, 1, isIn, m_model);
+              Plane & targetEdge = m_edges[x][y][z].y;
+              targetEdge.dist = distance;
+              targetEdge.normal = m_model.getNorm(Cvec3(x, y + distance, z));
             }
             
             // Determine z extent
             if ((m_model.getValue(Cvec3(x, y, z + 1)) < 0.0) != isIn) {
-              double checkValue = 0.0;
-              for (int i = 0; i < edgeDivisions; i++) {
-                checkValue += iterSize;
-                Cvec3 checkPoint = Cvec3(x, y, z + checkValue);
-                if ((m_model.getValue(checkPoint) < 0.0) != isIn) {
-                  Plane & targetEdge = m_edges[x][y][z].z;
-                  targetEdge.dist = checkValue - iterSize / 2.0;
-                  checkPoint[2] = targetEdge.dist + z;
-                  targetEdge.normal = m_model.getNorm(checkPoint);
-                  break;
-                }
-              }
+              const double distance = edgeContourIntersectionRel(x, y, z, 2, isIn, m_model);
+              Plane & targetEdge = m_edges[x][y][z].z;
+              targetEdge.dist = distance;
+              targetEdge.normal = m_model.getNorm(Cvec3(x, y, z + distance));
             }
           }
         }
@@ -173,9 +217,12 @@ namespace DC {
             
             const Voxel vox = m_edges[x][y][z];
               
-            double minError = 10000;
+            double minError = 1000000;
             Cvec3 minErrorPoint;
             bool setError = false;
+            
+            
+            
             for (int i = 0; i < numTrials; i++) {
               
               const Cvec3 noise(randZeroToOne(), randZeroToOne(), randZeroToOne());
@@ -187,7 +234,7 @@ namespace DC {
               double dist;
               
               dist = vox.x.dist;
-              if (dist > 0) {
+              if (dist >= 0) {
                 position = Cvec3(dist, 0, 0);
                 diff = noise - position;
                 dp = dot(diff, vox.x.normal);
@@ -196,7 +243,7 @@ namespace DC {
               }
               
               dist = vox.y.dist;
-              if (dist > 0) {
+              if (dist >= 0) {
                 position = Cvec3(0, dist, 0);
                 diff = noise - position;
                 dp = dot(diff, vox.y.normal);
@@ -205,7 +252,7 @@ namespace DC {
               }
               
               dist = vox.z.dist;
-              if (dist > 0) {
+              if (dist >= 0) {
                 position = Cvec3(0, 0, dist);
                 diff = noise - position;
                 dp = dot(diff, vox.z.normal);
@@ -214,7 +261,7 @@ namespace DC {
               }
               
               dist = m_edges[x + 1][y][z].y.dist;
-              if (dist > 0) {
+              if (dist >= 0) {
                 position = Cvec3(1, dist, 0);
                 diff = noise - position;
                 dp = dot(diff, m_edges[x + 1][y][z].y.normal);
@@ -223,7 +270,7 @@ namespace DC {
               }
               
               dist = m_edges[x + 1][y][z].z.dist;
-              if (dist > 0) {
+              if (dist >= 0) {
                 position = Cvec3(1, 0, dist);
                 diff = noise - position;
                 dp = dot(diff, m_edges[x + 1][y][z].z.normal);
@@ -232,7 +279,7 @@ namespace DC {
               }
               
               dist = m_edges[x][y][z + 1].x.dist;
-              if (dist > 0) {
+              if (dist >= 0) {
                 position = Cvec3(dist, 0, 1);
                 diff = noise - position;
                 dp = dot(diff, m_edges[x][y][z + 1].x.normal);
@@ -241,7 +288,7 @@ namespace DC {
               }
               
               dist = m_edges[x][y][z + 1].y.dist;
-              if (dist > 0) {
+              if (dist >= 0) {
                 position = Cvec3(0, dist, 1);
                 diff = noise - position;
                 dp = dot(diff, m_edges[x][y][z + 1].y.normal);
@@ -249,9 +296,8 @@ namespace DC {
                 setError = true;
               }
               
-              
               dist = m_edges[x][y + 1][z].x.dist;
-              if (dist > 0) {
+              if (dist >= 0) {
                 position = Cvec3(dist, 1, 0);
                 diff = noise - position;
                 dp = dot(diff, m_edges[x][y + 1][z].x.normal);
@@ -260,7 +306,7 @@ namespace DC {
               }
               
               dist = m_edges[x][y + 1][z].z.dist;
-              if (dist > 0) {
+              if (dist >= 0) {
                 position = Cvec3(0, 1, dist);
                 diff = noise - position;
                 dp = dot(diff, m_edges[x][y + 1][z].z.normal);
@@ -268,9 +314,8 @@ namespace DC {
                 setError = true;
               }
               
-              
               dist = m_edges[x + 1][y][z + 1].y.dist;
-              if (dist > 0) {
+              if (dist >= 0) {
                 position = Cvec3(1, dist, 1);
                 diff = noise - position;
                 dp = dot(diff, m_edges[x + 1][y][z + 1].y.normal);
@@ -279,7 +324,7 @@ namespace DC {
               }
               
               dist = m_edges[x + 1][y + 1][z].z.dist;
-              if (dist > 0) {
+              if (dist >= 0) {
                 position = Cvec3(1, 1, dist);
                 diff = noise - position;
                 dp = dot(diff, m_edges[x + 1][y + 1][z].z.normal);
@@ -288,7 +333,7 @@ namespace DC {
               }
               
               dist = m_edges[x][y + 1][z + 1].x.dist;
-              if (dist > 0) {
+              if (dist >= 0) {
                 position = Cvec3(dist, 1, 1);
                 diff = noise - position;
                 dp = dot(diff, m_edges[x][y + 1][z + 1].x.normal);
@@ -339,7 +384,6 @@ namespace DC {
           for (int z = 1; z < zSize - 1; z++) {
             
             if (m_edges[x][y][z].x.dist > 0) {
-              
               const Cvec3f p1 = Cvec3f(x, y, z) + m_edges[x][y][z].optPoint;
               Cvec3f n1 = m_edges[x][y][z].optNormal;
               const Cvec3f p2 = Cvec3f(x, y - 1, z) + m_edges[x][y-1][z].optPoint;
@@ -348,22 +392,7 @@ namespace DC {
               Cvec3f n3 = m_edges[x][y - 1][z - 1].optNormal;
               const Cvec3f p4 = Cvec3f(x, y, z - 1) + m_edges[x][y][z-1].optPoint;
               Cvec3f n4 = m_edges[x][y][z - 1].optNormal;
-
-              if (sharp) {
-                flattenNormals(n1, n2, n3, n4, p1, p2, p3, p4);
-              }
-              
-              // TODO: How do I divide non-planar quads into two triangles? Are these planar?
-              VertexPNX v1(p1 * scale, n1, Cvec2f(1, 1));
-              VertexPNX v2(p2 * scale, n2, Cvec2f(1, 0));
-              VertexPNX v3(p3 * scale, n3, Cvec2f(0, 0));
-              VertexPNX v4(p4 * scale, n4, Cvec2f(0, 1));
-              target.push_back(v3);
-              target.push_back(v2);
-              target.push_back(v1);
-              target.push_back(v3);
-              target.push_back(v1);
-              target.push_back(v4);
+              pushQuad(target, p1, p2, p3, p4, n1, n2, n3, n4, scale, sharp);
             }
             
             if (m_edges[x][y][z].y.dist > 0) {
@@ -375,19 +404,7 @@ namespace DC {
               Cvec3f n3 = m_edges[x - 1][y][z - 1].optNormal;
               const Cvec3f p4 = Cvec3f(x, y, z - 1) + m_edges[x][y][z-1].optPoint;
               Cvec3f n4 = m_edges[x][y][z - 1].optNormal;
-              if (sharp) {
-                flattenNormals(n1, n2, n3, n4, p1, p2, p3, p4);
-              }
-              VertexPNX v1(p1 * scale, n1, Cvec2f(1, 1));
-              VertexPNX v2(p2 * scale, n2, Cvec2f(1, 0));
-              VertexPNX v3(p3 * scale, n3, Cvec2f(0, 0));
-              VertexPNX v4(p4 * scale, n4, Cvec2f(0, 1));
-              target.push_back(v3);
-              target.push_back(v2);
-              target.push_back(v1);
-              target.push_back(v3);
-              target.push_back(v1);
-              target.push_back(v4);
+              pushQuad(target, p1, p2, p3, p4, n1, n2, n3, n4, scale, sharp);
             }
             
             if (m_edges[x][y][z].z.dist > 0) {
@@ -399,99 +416,12 @@ namespace DC {
               Cvec3f n3 = m_edges[x - 1][y - 1][z].optNormal;
               const Cvec3f p4 = Cvec3f(x, y - 1, z) + m_edges[x][y-1][z].optPoint;
               Cvec3f n4 = m_edges[x][y - 1][z].optNormal;
-              if (sharp) {
-                flattenNormals(n1, n2, n3, n4, p1, p2, p3, p4);
-              }
-              VertexPNX v1(p1 * scale, n1, Cvec2f(1, 1));
-              VertexPNX v2(p2 * scale, n2, Cvec2f(1, 0));
-              VertexPNX v3(p3 * scale, n3, Cvec2f(0, 0));
-              VertexPNX v4(p4 * scale, n4, Cvec2f(0, 1));
-              target.push_back(v3);
-              target.push_back(v2);
-              target.push_back(v1);
-              target.push_back(v3);
-              target.push_back(v1);
-              target.push_back(v4);
+              pushQuad(target, p1, p2, p3, p4, n1, n2, n3, n4, scale, sharp);
             }
-            
           }
         }
       }
     }
-    
-    /*static HermiteData cube(Cvec3 center, const double size) {
-      
-      assert(size > 2.0);
-      
-      HermiteData result;
-      //result.m_model.m_center = center;
-      //result.m_model.m_ra = size;
-      
-      const double halfSize = size / 2.0;
-      const double xMax = center[0] + halfSize;
-      const double xMin = center[0] - halfSize;
-      const double yMax = center[1] + halfSize;
-      const double yMin = center[1] - halfSize;
-      const double zMax = center[2] + halfSize;
-      const double zMin = center[2] - halfSize;
-      
-      for (int x = 0; x < xSize; x++) {
-        for (int y = 0; y < ySize; y++) {
-          for (int z = 0; z < zSize; z++) {
-            
-            // Check inside
-            if (x >= xMin &&
-                y >= yMin &&
-                z >= zMin &&
-                x < xMax &&
-                y < yMax &&
-                z < zMax) {
-              
-              Voxel& posEdges = result.m_edges[x][y][z];
-              
-              // Three faces
-              if (x + 1 >= xMax) {
-                
-                posEdges.x.dist = xMax - x;
-                posEdges.x.normal = Cvec3(1, 0, 0);
-                //posEdges.hasChange = true;
-              }
-              if (y + 1 >= yMax) {
-                posEdges.y.dist = yMax - y;
-                posEdges.y.normal = Cvec3(0, 1, 0);
-                //posEdges.hasChange = true;
-              }
-              if (z + 1 >= zMax) {
-                posEdges.z.dist = zMax - z;
-                posEdges.z.normal = Cvec3(0, 0, 1);
-                //posEdges.hasChange = true;
-              }
-              
-              if (x - 1 < xMin) {
-                Voxel& targetEdges = result.m_edges[x-1][y][z];
-                targetEdges.x.dist = xMin - (x - 1);
-                targetEdges.x.normal = Cvec3(-1, 0, 0);
-                //targetEdges.hasChange = true;
-              }
-              if (y - 1 < yMin) {
-                Voxel& targetEdges = result.m_edges[x][y-1][z];
-                targetEdges.y.dist = yMin - (y - 1);
-                targetEdges.y.normal = Cvec3(0, -1, 0);
-                //targetEdges.hasChange = true;
-              }
-              if (z - 1 < zMin) {
-                Voxel& targetEdges = result.m_edges[x][y][z-1];
-                targetEdges.z.dist = zMin - (z - 1);
-                targetEdges.z.normal = Cvec3(0, 0, -1);
-                //targetEdges.hasChange = true;
-              }
-            }
-          }
-        }
-      }
-      
-      return result;
-    }*/
     
     // DEBUG function to display distances and normals
     void triangulateToVectorDebug(std::vector<VertexPNX> & target, const double scale, const bool normals) const {

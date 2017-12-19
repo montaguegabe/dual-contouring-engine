@@ -2,11 +2,11 @@
 # include <GL/glew.h>
 #endif
 
+
 #include "uniforms.h"
 #include "picker.h"
 
 using namespace std;
-using namespace std::tr1;
 
 Picker::Picker(const RigTForm& initialRbt, Uniforms& uniforms)
   : drawer_(initialRbt, uniforms)
