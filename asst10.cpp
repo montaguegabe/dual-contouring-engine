@@ -931,7 +931,7 @@ static void keyboard(const unsigned char key, const int x, const int y) {
   }
       
   case 'y': {
-    if (g_frames.size() >= 4 && !g_isPlaying || true) {
+    if ((g_frames.size() >= 4 && !g_isPlaying) || true) {
       cout << "Playing.." << endl;
       g_isPlaying = true;
       animateTimerCallback(0);

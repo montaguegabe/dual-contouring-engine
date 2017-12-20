@@ -18,6 +18,7 @@
 #include "implicit.hpp"
 #include <memory>
 #include <limits>
+#include <algorithm>
 #include "Eigen/Dense"
 
 #define BINARY_SEARCH_ITERS 80
@@ -333,21 +334,34 @@ namespace DC {
             
             if (normals.rows() > 0) {
               
+              using std::cout;
+              using std::endl;
+              
               // Calculate minimum error point
               const int rows = normals.rows();
               
-              //Vector3d solution = normals.colPivHouseholderQr().solve(ideal);
-              //Vector3d solution = normals.fullPivHouseholderQr().solve(ideal);
-              JacobiSVD<Matrix<double, Dynamic, 3> > svd = normals.jacobiSvd(ComputeFullU | ComputeFullV);
-              using std::cout;
-              using std::endl;
-              /*cout << svd.matrixU() << "\n";
-              cout << svd.singularValues() << "\n";
-              cout << svd.matrixV() << "\n";*/
-              Vector3d solution = svd.solve(ideal);
+              // Step 1: Find QR decomposition of merged
+              Matrix<double, Dynamic, 4> planeMatrix(normals.rows(), 4);
+              planeMatrix << normals, ideal;
+              cout << planeMatrix << endl;
+              const HouseholderQR<Matrix<double, Dynamic, 4> > decomp = planeMatrix.householderQr();
+              //const Matrix<double, Dynamic, 4> factorization = decomp.matrixQR();
+              Matrix<double, Dynamic, Dynamic> matrixQ = decomp.householderQ();
+              Matrix<double, Dynamic, 4> matrixR = decomp.matrixQR().triangularView<Upper>();
               
+              if (rows < 3) {
+                matrixR.conservativeResizeLike(MatrixXd::Zero(3, 4));
+              }
+              
+              const Matrix<double, 3, 3> matrixAHat = matrixR.block(0, 0, 3, 3);
+              const Matrix<double, 3, 1> vectorBHat = matrixR.block(0, 3, 3, 1);
+              const Matrix<double, 3, 1> solution = matrixAHat.colPivHouseholderQr().solve(vectorBHat);
+ 
               // Add solution point to structure
               Cvec3 minErrorPoint = Cvec3(solution(0), solution(1), solution(2));
+              /*minErrorPoint[0] = std::min({std::max({-1.0, minErrorPoint[0]}), 2.0});
+              minErrorPoint[1] = std::min({std::max({-1.0, minErrorPoint[1]}), 2.0});
+              minErrorPoint[2] = std::min({std::max({-1.0, minErrorPoint[2]}), 2.0});*/
               if (rows < 3 || marked) {
                 // Underdetermined
                 minErrorPoint[1] += 4.0;
