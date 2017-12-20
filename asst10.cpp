@@ -114,7 +114,7 @@ static vector<shared_ptr<Material> > g_blobShellMats; // for blob shells
 static double g_radius = 6;
 static double g_thickness = 4;
 static int g_model = 0;
-static double g_blobX = 12.0;
+static double g_blobX = 12.01;
 static double g_blobY = 12.0;
 static bool g_wireframe = false;
 static bool g_sharp = false;
@@ -953,10 +953,10 @@ static void keyboard(const unsigned char key, const int x, const int y) {
 static void specialKeyboard(const int key, const int x, const int y) {
   switch (key) {
     case GLUT_KEY_RIGHT:
-      g_blobX += 0.5;
+      g_blobX += 0.52;
       break;
     case GLUT_KEY_LEFT:
-      g_blobX -= 0.5;
+      g_blobX -= 0.53;
       break;
     case GLUT_KEY_UP:
       //g_radius *= 1.05;

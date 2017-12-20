@@ -79,9 +79,9 @@ public:
   Cvec3 getNorm(const Cvec3 pos) const {
     double aVal = m_aField.getValue(pos);
     double bVal = -m_bField.getValue(pos);
-    /*if (std::abs(aVal - bVal) < 0.01) {
+    if (std::abs(aVal - bVal) < 0.01) {
       return normalize(m_aField.getNorm(pos) - m_bField.getNorm(pos));
-    }*/
+    }
     return aVal > bVal ? m_aField.getNorm(pos) : -m_bField.getNorm(pos);
   }
 };
@@ -99,7 +99,7 @@ public:
   SphereImplicit m_sphere;
   CubeImplicit m_cube;
   TorusImplicit m_torus;
-  IntersectionImplicit<SphereImplicit, TorusImplicit> m_intersection;
+  IntersectionImplicit<TorusImplicit, SphereImplicit> m_intersection;
   int m_mode = 0;
   
   double getValue(const Cvec3 pos) const;

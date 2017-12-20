@@ -418,7 +418,7 @@ namespace DC {
               if (rows < 3 || marked) {
                 // Underdetermined
                 minErrorPoint[0] = 0;
-                minErrorPoint[1] = -10;
+                minErrorPoint[1] = -100;
                 minErrorPoint[2] = 0;
               }
               Cvec3f minErrorPointF = Cvec3f(minErrorPoint[0], minErrorPoint[1], minErrorPoint[2]);
