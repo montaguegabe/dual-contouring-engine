@@ -114,11 +114,12 @@ static vector<shared_ptr<Material> > g_blobShellMats; // for blob shells
 static double g_radius = 6;
 static double g_thickness = 4;
 static int g_model = 0;
-static double g_blobX = 0.0;
+static double g_blobX = 12.0;
 static double g_blobY = 12.0;
 static bool g_wireframe = false;
 static bool g_sharp = false;
 static int g_debug = 0;
+static double g_tolerance = 0.1;
 
 static shared_ptr<SimpleGeometryPNX> g_blobGeometry;
 static Mesh g_blobMesh;
@@ -138,7 +139,7 @@ static void updateBlobGeometry() {
   const double scale = 0.1;
   DC::HermiteData<24, 24, 24> voxels(ToggleImplicit(Cvec3(g_blobX, g_blobY, 12.0), g_radius, g_thickness, g_model));
   if (g_debug == 0) {
-    voxels.triangulateToVector(newVerts, scale, g_blobX, g_sharp);
+    voxels.triangulateToVector(newVerts, scale, g_tolerance, g_sharp);
   } else if (g_debug == 1) {
     voxels.triangulateToVectorDebug(newVerts, scale, false);
   } else {
@@ -958,10 +959,14 @@ static void specialKeyboard(const int key, const int x, const int y) {
       g_blobX -= 0.5;
       break;
     case GLUT_KEY_UP:
-      g_radius *= 1.05;
+      //g_radius *= 1.05;
+      g_tolerance *= 1.05;
+      cout << "g_tolerance = " << g_tolerance << endl;
       break;
     case GLUT_KEY_DOWN:
-      g_radius /= 1.05;
+      //g_radius /= 1.05;
+      g_tolerance /= 1.05;
+      cout << "g_tolerance = " << g_tolerance << endl;
       break;
   }
   updateBlobGeometry();

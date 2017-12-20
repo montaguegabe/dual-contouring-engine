@@ -547,6 +547,20 @@ template<typename _MatrixType, int QRPreconditioner> class JacobiSVD
     {
       compute(matrix, computationOptions);
     }
+  
+    void pinv( MatrixType& pinvmat, const double tolerance) const
+    {
+      eigen_assert(m_isInitialized && "SVD is not initialized.");
+      SingularValuesType singularValues_inv=m_singularValues;
+      for (long i = 0; i < m_workMatrix.cols(); ++i) {
+        if (m_singularValues(i) > tolerance)
+          singularValues_inv(i) = 1.0 / m_singularValues(i);
+        else {
+          singularValues_inv(i) = 0;
+        }
+      }
+      pinvmat= (m_matrixV*singularValues_inv.asDiagonal()*m_matrixU.transpose());
+    }
 
     /** \brief Method performing the decomposition of given matrix using custom options.
      *

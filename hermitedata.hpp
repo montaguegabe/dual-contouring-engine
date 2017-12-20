@@ -66,16 +66,20 @@ namespace DC {
     return (upperBound + lowerBound) / 2.0;
   }
   
-  static inline void addToLeastSquaresProblem(Eigen::Matrix<double, Eigen::Dynamic, 3> & normals, Eigen::Matrix<double, Eigen::Dynamic, 1> & ideal, const Cvec3 & position, const Cvec3 & normal, bool & marked) {
+  static inline void addToLeastSquaresProblem(Eigen::Matrix<double, Eigen::Dynamic, 3> & normals, Eigen::Matrix<double, Eigen::Dynamic, 3> & positions, Eigen::Vector3d & massPoint, const Cvec3 & position, const Cvec3 & normal, bool & marked) {
     
     using namespace Eigen;
     const int rows = normals.rows();
     normals.conservativeResize(rows + 1, NoChange);
-    ideal.conservativeResize(rows + 1, NoChange);
+    positions.conservativeResize(rows + 1, NoChange);
     normals(rows, 0) = normal[0];
     normals(rows, 1) = normal[1];
     normals(rows, 2) = normal[2];
-    ideal(rows) = dot(normal, position);
+    massPoint += Vector3d({position[0], position[1], position[2]});
+    positions(rows, 0) = position[0];
+    positions(rows, 1) = position[1];
+    positions(rows, 2) = position[2];
+    //positions(rows) = dot(normal, position);
   }
   
   template <int xSize, int ySize, int zSize>
@@ -227,8 +231,8 @@ namespace DC {
       writeVertex(target, scale, *t2v3);
     }
     
-    // Dual contouring randomized
-    void triangulateToVector(std::vector<VertexPNX> & target, const double scale, const int randIterations, const bool sharp) {
+    // Dual contouring
+    void triangulateToVector(std::vector<VertexPNX> & target, const double scale, const double tolerance, const bool sharp) {
       
       using std::vector;
       using namespace Eigen;
@@ -241,7 +245,8 @@ namespace DC {
             
             // Calculate sum of squares error
             Matrix<double, Dynamic, 3> normals;
-            Matrix<double, Dynamic, 1> ideal;
+            Matrix<double, Dynamic, 3> positions;
+            Vector3d massPoint = Vector3d::Zero();
             
             double dist;
             Cvec3 position;
@@ -252,102 +257,113 @@ namespace DC {
             if (dist >= 0) {
               position = Cvec3(dist, 0, 0);
               normal = vox.x.normal;
-              addToLeastSquaresProblem(normals, ideal, position, normal, marked);
+              addToLeastSquaresProblem(normals, positions, massPoint, position, normal, marked);
             }
             
             dist = vox.y.dist;
             if (dist >= 0) {
               position = Cvec3(0, dist, 0);
               normal = vox.y.normal;
-              addToLeastSquaresProblem(normals, ideal, position, normal, marked);
+              addToLeastSquaresProblem(normals, positions, massPoint, position, normal, marked);
             }
             
             dist = vox.z.dist;
             if (dist >= 0) {
               position = Cvec3(0, 0, dist);
               normal = vox.z.normal;
-              addToLeastSquaresProblem(normals, ideal, position, normal, marked);
+              addToLeastSquaresProblem(normals, positions, massPoint, position, normal, marked);
             }
             
             dist = m_edges[x + 1][y][z].y.dist;
             if (dist >= 0) {
               position = Cvec3(1, dist, 0);
               normal = m_edges[x + 1][y][z].y.normal;
-              addToLeastSquaresProblem(normals, ideal, position, normal, marked);
+              addToLeastSquaresProblem(normals, positions, massPoint, position, normal, marked);
             }
             
             dist = m_edges[x + 1][y][z].z.dist;
             if (dist >= 0) {
               position = Cvec3(1, 0, dist);
               normal = m_edges[x + 1][y][z].z.normal;
-              addToLeastSquaresProblem(normals, ideal, position, normal, marked);
+              addToLeastSquaresProblem(normals, positions, massPoint, position, normal, marked);
             }
             
             dist = m_edges[x][y][z + 1].x.dist;
             if (dist >= 0) {
               position = Cvec3(dist, 0, 1);
               normal = m_edges[x][y][z + 1].x.normal;
-              addToLeastSquaresProblem(normals, ideal, position, normal, marked);
+              addToLeastSquaresProblem(normals, positions, massPoint, position, normal, marked);
             }
             
             dist = m_edges[x][y][z + 1].y.dist;
             if (dist >= 0) {
               position = Cvec3(0, dist, 1);
               normal = m_edges[x][y][z + 1].y.normal;
-              addToLeastSquaresProblem(normals, ideal, position, normal, marked);
+              addToLeastSquaresProblem(normals, positions, massPoint, position, normal, marked);
             }
             
             dist = m_edges[x][y + 1][z].x.dist;
             if (dist >= 0) {
               position = Cvec3(dist, 1, 0);
               normal = m_edges[x][y + 1][z].x.normal;
-              addToLeastSquaresProblem(normals, ideal, position, normal, marked);
+              addToLeastSquaresProblem(normals, positions, massPoint, position, normal, marked);
             }
             
             dist = m_edges[x][y + 1][z].z.dist;
             if (dist >= 0) {
               position = Cvec3(0, 1, dist);
               normal = m_edges[x][y + 1][z].z.normal;
-              addToLeastSquaresProblem(normals, ideal, position, normal, marked);
+              addToLeastSquaresProblem(normals, positions, massPoint, position, normal, marked);
             }
             
             dist = m_edges[x + 1][y][z + 1].y.dist;
             if (dist >= 0) {
               position = Cvec3(1, dist, 1);
               normal = m_edges[x + 1][y][z + 1].y.normal;
-              addToLeastSquaresProblem(normals, ideal, position, normal, marked);
+              addToLeastSquaresProblem(normals, positions, massPoint, position, normal, marked);
             }
             
             dist = m_edges[x + 1][y + 1][z].z.dist;
             if (dist >= 0) {
               position = Cvec3(1, 1, dist);
               normal = m_edges[x + 1][y + 1][z].z.normal;
-              addToLeastSquaresProblem(normals, ideal, position, normal, marked);
+              addToLeastSquaresProblem(normals, positions, massPoint, position, normal, marked);
             }
             
             dist = m_edges[x][y + 1][z + 1].x.dist;
             if (dist >= 0) {
               position = Cvec3(dist, 1, 1);
               normal = m_edges[x][y + 1][z + 1].x.normal;
-              addToLeastSquaresProblem(normals, ideal, position, normal, marked);
+              addToLeastSquaresProblem(normals, positions, massPoint, position, normal, marked);
             }
             
-            if (normals.rows() > 0) {
+            const int rows = normals.rows();
+            if (rows > 0) {
               
               using std::cout;
               using std::endl;
               
-              // Calculate minimum error point
-              const int rows = normals.rows();
+              
+              // Step 0: Calculate mass point
+              massPoint = massPoint / rows;
+              
+              // Calculate real positions values
+              Matrix<double, Dynamic, 1> ideals;
+              ideals.conservativeResize(rows, NoChange);
+              for (int i = 0; i < rows; i++) {
+                ideals(i) = (
+                   normals(i, 0) * (positions(i, 0) - massPoint(0)) +
+                   normals(i, 1) * (positions(i, 1) - massPoint(1)) +
+                   normals(i, 2) * (positions(i, 2) - massPoint(2))
+                                 );
+              }
               
               // Step 1: Find QR decomposition of merged
               Matrix<double, Dynamic, 4> planeMatrix(normals.rows(), 4);
-              planeMatrix << normals, ideal;
-              cout << planeMatrix << endl;
+              planeMatrix << normals, ideals;
               const HouseholderQR<Matrix<double, Dynamic, 4> > decomp = planeMatrix.householderQr();
-              //const Matrix<double, Dynamic, 4> factorization = decomp.matrixQR();
               Matrix<double, Dynamic, Dynamic> matrixQ = decomp.householderQ();
-              Matrix<double, Dynamic, 4> matrixR = decomp.matrixQR().triangularView<Upper>();
+              Matrix<double, Dynamic, 4> matrixR = (decomp.matrixQR().triangularView<Upper>());
               
               if (rows < 3) {
                 matrixR.conservativeResizeLike(MatrixXd::Zero(3, 4));
@@ -355,16 +371,55 @@ namespace DC {
               
               const Matrix<double, 3, 3> matrixAHat = matrixR.block(0, 0, 3, 3);
               const Matrix<double, 3, 1> vectorBHat = matrixR.block(0, 3, 3, 1);
-              const Matrix<double, 3, 1> solution = matrixAHat.colPivHouseholderQr().solve(vectorBHat);
+              
+              // Step 2: Compute the SVD decomposition of A hat
+              /*const Matrix<double, 3, 3> matrixAT = matrixAHat.transpose();
+              const Matrix<double, 3, 3> matrixATA = matrixAT * matrixAHat;
+              //const Matrix<double, 3, 3> matrixAAT = matrixAHat * matrixAT;
+              
+              SelfAdjointEigenSolver<Matrix<double, 3, 3> > eigensolver(matrixATA);
+              Vector3d eigenvalues = eigensolver.eigenvalues();
+              Matrix<double, 3, 3> matrixDInv;
+              Matrix<double, 3, 3> matrixD;
+              const double tolerance = 0.000001;
+              for (int i = 0; i < 3; i++) {
+                const double singularValue = std::sqrt(eigenvalues(i));
+                matrixDInv(i, i) = singularValue < tolerance ? 0.0 : 1.0 / singularValue;
+                matrixD(i, i) = singularValue;
+                if (singularValue < 0.1) {
+                  //marked = true;
+                }
+              }*/
+              
+              // Rows of U are eigenvectors
+              /*const Matrix<double, 3, 3> matrixUT = eigensolver.eigenvectors();
+              const Matrix<double, 3, 3> matrixU = matrixUT.transpose();
+              const Matrix<double, Dynamic, Dynamic> svdProduct = matrixUT * matrixD * matrixU;
+              const Matrix<double, Dynamic, Dynamic> svdProduct2 = matrixU * matrixD * matrixUT;
+              
+              cout << "---" << endl;
+              cout << matrixAHat << endl;
+              cout << "---" << endl;
+              cout << svdProduct << endl;
+              cout << "---" << endl;
+              cout << svdProduct2 << endl;
+              cout << "---" << endl;
+              cout << "---" << endl;
+              */
+              JacobiSVD<Matrix<double, 3, 3> > svd(matrixAHat, ComputeFullU | ComputeFullV);
+              Matrix<double, 3, 3> pseudoInv;
+              svd.pinv(pseudoInv, tolerance);
+              
+              //const Matrix<double, 3, 1> solution =  matrixAHat.jacobiSvd(ComputeFullU | ComputeFullV).solve(vectorBHat);
+              const Matrix<double, 3, 1> solution = pseudoInv * vectorBHat;
  
               // Add solution point to structure
-              Cvec3 minErrorPoint = Cvec3(solution(0), solution(1), solution(2));
-              /*minErrorPoint[0] = std::min({std::max({-1.0, minErrorPoint[0]}), 2.0});
-              minErrorPoint[1] = std::min({std::max({-1.0, minErrorPoint[1]}), 2.0});
-              minErrorPoint[2] = std::min({std::max({-1.0, minErrorPoint[2]}), 2.0});*/
+              Cvec3 minErrorPoint = Cvec3(solution(0) + massPoint(0), solution(1) + massPoint(1), solution(2) + massPoint(2));
               if (rows < 3 || marked) {
                 // Underdetermined
-                minErrorPoint[1] += 4.0;
+                minErrorPoint[0] = 0;
+                minErrorPoint[1] = -10;
+                minErrorPoint[2] = 0;
               }
               Cvec3f minErrorPointF = Cvec3f(minErrorPoint[0], minErrorPoint[1], minErrorPoint[2]);
               m_edges[x][y][z].optPoint = minErrorPointF;
