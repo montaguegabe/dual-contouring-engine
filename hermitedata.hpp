@@ -415,6 +415,7 @@ namespace DC {
  
               // Add solution point to structure
               Cvec3 minErrorPoint = Cvec3(solution(0) + massPoint(0), solution(1) + massPoint(1), solution(2) + massPoint(2));
+              //Cvec3 minErrorPoint = Cvec3(massPoint(0), massPoint(1), massPoint(2));
               if (rows < 3 || marked) {
                 // Underdetermined
                 minErrorPoint[0] = 0;
